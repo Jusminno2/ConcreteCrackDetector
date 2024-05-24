@@ -1,15 +1,18 @@
-from grayscale_transform import ImageProcessor
+from gray_mean_filter import GrayMeanFilter
+from crack_detection import CrackDetection
 
 def main():
-    # 入力画像と出力画像のパス
     pic_name = input('Please enter the path of the image (without extension): ')
     input_image_path = f'pictures/{pic_name}.jpg'
     output_gray_image_path = f'pictures/o-{pic_name}.jpg'
     output_filtered_image_path = f'pictures/o-m-{pic_name}.jpg'
+    output_detected_image_path = f'pictures/detected-{pic_name}.jpg'
 
-    # 画像のグレースケール変換とノイズ除去
-    processor = ImageProcessor()
-    processor.convert_image_to_grayscale(input_image_path, output_gray_image_path, output_filtered_image_path)
+    gray_mean_filter = GrayMeanFilter()
+    gray_image, filtered_gray_image = gray_mean_filter.convert_image_to_grayscale_and_filter(input_image_path, output_gray_image_path, output_filtered_image_path)
+
+    crack_detection = CrackDetection()
+    crack_detection.detect_cracks(gray_image, filtered_gray_image, output_detected_image_path)
 
 if __name__ == '__main__':
     main()
