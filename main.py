@@ -47,17 +47,25 @@ def convert_image_to_grayscale(input_image_path, output_gray_image_path, output_
     # グレースケール画像の保存（フィルター適用前）
     cv2.imwrite(output_gray_image_path, gray_image)
 
-    # Medianフィルターを適用してノイズを除去
-    filtered_image = cv2.medianBlur(gray_image, 5)  # カーネルサイズを5に設定
+    # Mean Shiftフィルターを適用してノイズを除去
+    filtered_image = cv2.pyrMeanShiftFiltering(image, sp=21, sr=51)
+
+    # グレースケール変換後のフィルタリングされた画像
+    filtered_gray_image = np.zeros((filtered_image.shape[0], filtered_image.shape[1]), dtype=np.uint8)
+
+    for i in range(filtered_image.shape[0]):
+        for j in range(filtered_image.shape[1]):
+            r, g, b = filtered_image[i, j]
+            filtered_gray_image[i, j] = rgb_to_grayscale(r, g, b)
 
     # フィルター適用後のグレースケール画像の保存
     cv2.imwrite(output_filtered_image_path, filtered_image)
 
 
 # 入力画像と出力画像のパス
-input_image_path = 'pictures/sample03.jpg'
-output_gray_image_path = 'pictures/o-sample03.jpg'
-output_filtered_image_path = 'pictures/o-m-sample03.jpg'
+input_image_path = 'pictures/sample04.jpg'
+output_gray_image_path = 'pictures/o-sample04.jpg'
+output_filtered_image_path = 'pictures/o-m-sample04.jpg'
 
 # 画像のグレースケール変換とノイズ除去
 convert_image_to_grayscale(input_image_path, output_gray_image_path, output_filtered_image_path)
