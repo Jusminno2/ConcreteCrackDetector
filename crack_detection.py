@@ -1,27 +1,28 @@
 import cv2
 import numpy as np
-
+from kittler_threshold import kittler_threshold
 
 class CrackDetection:
     def compute_threshold(self, image):
-        crack_pixels = image[image < 127]
-        non_crack_pixels = image[image >= 127]
-        mean_crack = np.mean(crack_pixels)
-        mean_non_crack = np.mean(non_crack_pixels)
-        std_non_crack = np.std(non_crack_pixels)
-        return min(mean_crack, mean_non_crack - 4 * std_non_crack)
+        # Kittlerの方法で動的なしきい値を計算
+        threshold = kittler_threshold(image)
+        return threshold
 
     def compute_eccentricity(self, mask):
         moments = cv2.moments(mask.astype(np.uint8))
         if moments['mu20'] + moments['mu02'] == 0:
             return 0
-        eccentricity = ((moments['mu20'] - moments['mu02']) ** 2 + 4 * moments['mu11'] ** 2) / (
-                    (moments['mu20'] + moments['mu02']) ** 2)
+        eccentricity = ((moments['mu20'] - moments['mu02']) ** 2 + 4 * moments['mu11'] ** 2) / ((moments['mu20'] + moments['mu02']) ** 2)
         return np.sqrt(1 - eccentricity)
 
-    def detect_cracks(self, gray_image, filtered_gray_image, output_detected_image_path):
-        threshold = self.compute_threshold(filtered_gray_image)
-        cracks = gray_image < threshold
+    def detect_cracks(self, filtered_gray_image, output_detected_image_path, output_binary_image_path):
+        threshold_value = self.compute_threshold(filtered_gray_image)
+        cracks = filtered_gray_image < threshold_value  # 二値化
+
+        # 二値化された画像を保存
+        binary_image = (cracks * 255).astype(np.uint8)
+        cv2.imwrite(output_binary_image_path, binary_image)
+
         num_labels, labeled_cracks = cv2.connectedComponents(cracks.astype(np.uint8))
         result_image = cv2.cvtColor(filtered_gray_image, cv2.COLOR_GRAY2BGR)
 
