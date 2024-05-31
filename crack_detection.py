@@ -1,13 +1,7 @@
 import cv2
 import numpy as np
-from kittler_threshold import kittler_threshold
 
 class CrackDetection:
-    def compute_threshold(self, image):
-        # Kittlerの方法で動的なしきい値を計算
-        threshold = kittler_threshold(image)
-        return threshold
-
     def compute_eccentricity(self, mask):
         moments = cv2.moments(mask.astype(np.uint8))
         if moments['mu20'] + moments['mu02'] == 0:
@@ -16,14 +10,15 @@ class CrackDetection:
         return np.sqrt(1 - eccentricity)
 
     def detect_cracks(self, filtered_gray_image, output_detected_image_path, output_binary_image_path):
-        threshold_value = self.compute_threshold(filtered_gray_image)
-        cracks = filtered_gray_image < threshold_value  # 二値化
+        # 適応型しきい値処理を使用して二値化
+        binary_image = cv2.adaptiveThreshold(filtered_gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                             cv2.THRESH_BINARY_INV, 11, 2)
 
         # 二値化された画像を保存
-        binary_image = (cracks * 255).astype(np.uint8)
         cv2.imwrite(output_binary_image_path, binary_image)
 
-        num_labels, labeled_cracks = cv2.connectedComponents(cracks.astype(np.uint8))
+        num_labels, labeled_cracks = cv2.connectedComponents(binary_image)
+
         result_image = cv2.cvtColor(filtered_gray_image, cv2.COLOR_GRAY2BGR)
 
         for label in range(1, num_labels):
@@ -34,8 +29,8 @@ class CrackDetection:
                 perimeter = cv2.arcLength(contours[0], True)
                 eccentricity = self.compute_eccentricity(mask)
                 aspect_ratio = area / float(perimeter ** 2)
-
-                if area >= 10 and eccentricity >= 0.10 and aspect_ratio < 1.0:  # 条件を微調整
+                if area >= 80 and eccentricity <= 0.97 and aspect_ratio <= 1.0:  # 条件を微調整
                     result_image[mask == 1] = [0, 0, 255]  # 赤色に設定
 
         cv2.imwrite(output_detected_image_path, result_image)
+
