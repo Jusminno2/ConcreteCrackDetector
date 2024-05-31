@@ -33,7 +33,9 @@ class CrackDetection:
             if len(contours) > 0:
                 perimeter = cv2.arcLength(contours[0], True)
                 eccentricity = self.compute_eccentricity(mask)
-                if area >= 100 and area / (perimeter ** 2) <= 1 and eccentricity >= 0.97:
+                aspect_ratio = area / float(perimeter ** 2)
+
+                if area >= 10 and eccentricity >= 0.10 and aspect_ratio < 1.0:  # 条件を微調整
                     result_image[mask == 1] = [0, 0, 255]  # 赤色に設定
 
         cv2.imwrite(output_detected_image_path, result_image)
