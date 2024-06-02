@@ -26,25 +26,16 @@ class GrayMeanFilter:
 
         return int(v * 255)
 
-    def convert_image_to_grayscale_and_filter(self, input_image_path, output_gray_image_path, output_filtered_image_path):
+    def convert_image_to_grayscale_and_filter(self, input_image_path, output_filtered_image_path):
         # 画像の読み込み
         image = cv2.imread(input_image_path)
-
-        # 出力用の空の画像
-        gray_image = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
-
-        # 画像の各ピクセルをグレースケールに変換
-        for i in range(image.shape[0]):
-            for j in range(image.shape[1]):
-                r, g, b = image[i, j]
-                gray_image[i, j] = self.rgb_to_grayscale(r, g, b)
-
-        # グレースケール画像の保存（フィルター適用前）
-        cv2.imwrite(output_gray_image_path, gray_image)
         # Mean Shiftフィルターを適用してノイズを除去
         filtered_image = cv2.pyrMeanShiftFiltering(image, sp=21, sr=51)
-        # グレースケール変換後のフィルタリングされた画像
+        # フィルタリングされたグレースケール画像を保存するための空の配列
         filtered_gray_image = np.zeros((filtered_image.shape[0], filtered_image.shape[1]), dtype=np.uint8)
+
+        # 箱の中身はなんだろな？
+        print(f'filtered_image:\n{filtered_image}\nfiltered_image.shape[0]:\n{filtered_image.shape[0]}\nfiltered_image.shape[1]:\n{filtered_image.shape[1]}')
 
         for i in range(filtered_image.shape[0]):
             for j in range(filtered_image.shape[1]):
@@ -53,4 +44,4 @@ class GrayMeanFilter:
 
         # フィルター適用後のグレースケール画像の保存
         cv2.imwrite(output_filtered_image_path, filtered_gray_image)
-        return gray_image, filtered_gray_image
+        return filtered_gray_image

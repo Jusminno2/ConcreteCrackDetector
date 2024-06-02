@@ -1,12 +1,14 @@
 import cv2
 import numpy as np
 
+
 class CrackDetection:
     def compute_eccentricity(self, mask):
         moments = cv2.moments(mask.astype(np.uint8))
         if moments['mu20'] + moments['mu02'] == 0:
             return 0
-        eccentricity = ((moments['mu20'] - moments['mu02']) ** 2 + 4 * moments['mu11'] ** 2) / ((moments['mu20'] + moments['mu02']) ** 2)
+        eccentricity = ((moments['mu20'] - moments['mu02']) ** 2 + 4 * moments['mu11'] ** 2) / (
+                    (moments['mu20'] + moments['mu02']) ** 2)
         return np.sqrt(1 - eccentricity)
 
     def detect_cracks(self, filtered_gray_image, output_detected_image_path, output_binary_image_path):
@@ -29,8 +31,7 @@ class CrackDetection:
                 perimeter = cv2.arcLength(contours[0], True)
                 eccentricity = self.compute_eccentricity(mask)
                 aspect_ratio = area / float(perimeter ** 2)
-                if area >= 80 and eccentricity <= 0.97 and aspect_ratio <= 1.0:  # 条件を微調整
+                if area >= 80 and eccentricity >= 0.20 and aspect_ratio <= 1.0:  # 条件を微調整
                     result_image[mask == 1] = [0, 0, 255]  # 赤色に設定
 
         cv2.imwrite(output_detected_image_path, result_image)
-
